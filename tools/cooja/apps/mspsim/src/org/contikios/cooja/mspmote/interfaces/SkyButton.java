@@ -77,7 +77,7 @@ public class SkyButton extends Button {
     sim.invokeSimulationThread(new Runnable() {
       public void run() {
         sim.scheduleEvent(pressButtonEvent, sim.getSimulationTime());
-        sim.scheduleEvent(releaseButtonEvent, sim.getSimulationTime() + Simulation.MILLISECOND);
+        sim.scheduleEvent(releaseButtonEvent, sim.getSimulationTime() + 10*Simulation.MILLISECOND);
       }      
     });
   }
