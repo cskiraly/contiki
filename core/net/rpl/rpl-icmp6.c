@@ -53,6 +53,7 @@
 #include "net/rpl/rpl-private.h"
 #include "net/packetbuf.h"
 #include "net/ipv6/multicast/uip-mcast6.h"
+#include "net/nbr-table.h"
 
 #include <limits.h>
 #include <string.h>
@@ -748,23 +749,35 @@ dao_input(void)
     if((nbr = uip_ds6_nbr_add(&dao_sender_addr,
                               (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER),
                               0, NBR_REACHABLE)) != NULL) {
-      /* set reachable timer */
-      stimer_set(&nbr->reachable, UIP_ND6_REACHABLE_TIME / 1000);
-      PRINTF("RPL: Neighbor added to neighbor cache ");
-      PRINT6ADDR(&dao_sender_addr);
-      PRINTF(", ");
-      PRINTLLADDR((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
-      PRINTF("\n");
+      nbr_table_stats_t *stats;
+      stats = nbr_table_get_stats();
+      if (stats->locked < stats->max-1) {
+        /* set reachable timer */
+        stimer_set(&nbr->reachable, UIP_ND6_REACHABLE_TIME / 1000);
+        PRINTF("RPL: Neighbor added to neighbor cache (locked:%u used:%u max:%u) ",stats->locked, stats->used, stats->max);
+        PRINT6ADDR(&dao_sender_addr);
+        PRINTF(", ");
+        PRINTLLADDR((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
+        PRINTF("\n");
+      } else {
+        PRINTF("RPL: Almost Out of Memory, dropping DAO (sending NACK) from ");
+        PRINT6ADDR(&dao_sender_addr);
+        PRINTF(", ");
+        PRINTLLADDR((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
+        PRINTF("\n");
+        /* send explicit NACK */
+        if(flags & RPL_DAO_K_FLAG) {
+          dao_ack_output(instance, &dao_sender_addr, sequence, RPL_DAO_ACK_REJECT);
+          //uip_ds6_nbr_rm(nbr); //no need to remove; adding to nbr table, but not to routing table. Not locking, so it will eventually go away.
+        }
+        return;
+      }
     } else {
       PRINTF("RPL: Out of Memory, dropping DAO from ");
       PRINT6ADDR(&dao_sender_addr);
       PRINTF(", ");
       PRINTLLADDR((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
       PRINTF("\n");
-      /* send explicit NACK;  TODO: this will fail since IP->MAC will not work */
-      if(flags & RPL_DAO_K_FLAG) {
-          dao_ack_output(instance, &dao_sender_addr, sequence, RPL_DAO_ACK_REJECT);
-      }
       return;
     }
   } else {
