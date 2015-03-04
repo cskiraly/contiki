@@ -658,8 +658,8 @@ dao_input(void)
       return;
     }
 
-    /* If we get the DAO from our parent, we also have a loop. */
-    if(parent != NULL && parent == dag->preferred_parent) {
+    /* If we get the DAO from our DAO parent, we also have a loop. */
+    if(parent != NULL && parent == dag->preferred_dao_parent) {
       PRINTF("RPL: Loop detected when receiving a unicast DAO from our parent\n");
       parent->rank = INFINITE_RANK;
       parent->flags |= RPL_PARENT_FLAG_UPDATED;
@@ -728,12 +728,12 @@ dao_input(void)
 
       /* We forward the incoming no-path DAO to our parent, if we have
          one. */
-      if(dag->preferred_parent != NULL &&
-         rpl_get_parent_ipaddr(dag->preferred_parent) != NULL) {
+      if(dag->preferred_dao_parent != NULL &&
+         rpl_get_parent_ipaddr(dag->preferred_dao_parent) != NULL) {
         PRINTF("RPL: Forwarding no-path DAO to parent ");
-        PRINT6ADDR(rpl_get_parent_ipaddr(dag->preferred_parent));
+        PRINT6ADDR(rpl_get_parent_ipaddr(dag->preferred_dao_parent));
         PRINTF("\n");
-        uip_icmp6_send(rpl_get_parent_ipaddr(dag->preferred_parent),
+        uip_icmp6_send(rpl_get_parent_ipaddr(dag->preferred_dao_parent),
                        ICMP6_RPL, RPL_CODE_DAO, buffer_length);
       }
       if(flags & RPL_DAO_K_FLAG) {
@@ -802,12 +802,12 @@ fwd_dao:
 #endif
 
   if(learned_from == RPL_ROUTE_FROM_UNICAST_DAO) {
-    if(dag->preferred_parent != NULL &&
-       rpl_get_parent_ipaddr(dag->preferred_parent) != NULL) {
+    if(dag->preferred_dao_parent != NULL &&
+       rpl_get_parent_ipaddr(dag->preferred_dao_parent) != NULL) {
       PRINTF("RPL: Forwarding DAO to parent ");
-      PRINT6ADDR(rpl_get_parent_ipaddr(dag->preferred_parent));
+      PRINT6ADDR(rpl_get_parent_ipaddr(dag->preferred_dao_parent));
       PRINTF("\n");
-      uip_icmp6_send(rpl_get_parent_ipaddr(dag->preferred_parent),
+      uip_icmp6_send(rpl_get_parent_ipaddr(dag->preferred_dao_parent),
                      ICMP6_RPL, RPL_CODE_DAO, buffer_length);
     }
     if(flags & RPL_DAO_K_FLAG) {

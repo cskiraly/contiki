@@ -151,6 +151,7 @@ rpl_set_preferred_parent(rpl_dag_t *dag, rpl_parent_t *p)
     nbr_table_unlock(rpl_parents, dag->preferred_parent);
     nbr_table_lock(rpl_parents, p);
     dag->preferred_parent = p;
+    dag->preferred_dao_parent = p;
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -213,7 +214,7 @@ should_send_dao(rpl_instance_t *instance, rpl_dio_t *dio, rpl_parent_t *p)
     return 0;
   }
   /* check if the new DTSN is more recent */
-  return p == instance->current_dag->preferred_parent &&
+  return p == instance->current_dag->preferred_dao_parent &&
     (lollipop_greater_than(dio->dtsn, p->dtsn));
 }
 /*---------------------------------------------------------------------------*/
