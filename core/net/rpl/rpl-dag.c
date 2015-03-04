@@ -151,6 +151,8 @@ rpl_set_preferred_parent(rpl_dag_t *dag, rpl_parent_t *p)
     nbr_table_unlock(rpl_parents, dag->preferred_parent);
     nbr_table_lock(rpl_parents, p);
     dag->preferred_parent = p;
+    //nbr_table_unlock(rpl_parents, dag->preferred_dao_parent); // whatch out not to unlock parent
+    //nbr_table_lock(rpl_parents, p);
     dag->preferred_dao_parent = p;
   }
 }

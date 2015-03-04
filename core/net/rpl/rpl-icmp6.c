@@ -58,7 +58,7 @@
 #include <limits.h>
 #include <string.h>
 
-#define DEBUG DEBUG_NONE
+#define DEBUG DEBUG_PRINT
 
 #include "net/ip/uip-debug.h"
 
@@ -752,6 +752,8 @@ dao_input(void)
       nbr_table_stats_t *stats;
       stats = nbr_table_get_stats();
       if (stats->locked < stats->max-1) {
+        ///* lock next hop in nbr table */
+        //nbr_table_lock(rpl_parents, &dao_sender_addr);
         /* set reachable timer */
         stimer_set(&nbr->reachable, UIP_ND6_REACHABLE_TIME / 1000);
         PRINTF("RPL: Neighbor added to neighbor cache (locked:%u used:%u max:%u) ",stats->locked, stats->used, stats->max);
@@ -784,7 +786,7 @@ dao_input(void)
     PRINTF("RPL: Neighbor already in neighbor cache\n");
   }
 
-  rpl_lock_parent(parent);
+  rpl_lock_parent(parent); //???? this is where one might want to lock the route's next hop, but not the parent!!!
 
   rep = rpl_add_route(dag, &prefix, prefixlen, &dao_sender_addr);
   if(rep == NULL) {
@@ -946,6 +948,13 @@ dao_ack_input(void)
   if (status == RPL_DAO_ACK_REJECT) {
     rpl_instance_t *instance;
     rpl_parent_t *parent;
+    // if NACK, set DAO_NACK flag and trigger new DAO (target?)
+    //p = lookup(&UIP_IP_BUF->srcipaddr)
+    //if (p) {
+    //  p->flags &= FLAGS_DAO_NACK;
+    //}
+    //select_dao_parent
+    //send new dao
 
     if(sequence == dao_sequence) {
       PRINTF("RPL: Ignoring a DAO-NACK with wrong sequnce number\n");

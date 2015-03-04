@@ -108,7 +108,7 @@ rpl_verify_header(int uip_ext_opt_offset)
     }
     RPL_STAT(rpl_stats.forward_errors++);
     /* Trigger DAO retransmission */
-    rpl_reset_dio_timer(instance);
+    rpl_reset_dio_timer(instance);	// DAO???
     /* drop the packet as it is not routable */
     return 1;
   }

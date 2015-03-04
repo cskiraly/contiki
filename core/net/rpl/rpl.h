@@ -106,6 +106,7 @@ struct rpl_dag;
 /*---------------------------------------------------------------------------*/
 #define RPL_PARENT_FLAG_UPDATED           0x1
 #define RPL_PARENT_FLAG_LINK_METRIC_VALID 0x2
+#define RPL_PARENT_FLAG_DAO_NACK          0x4
 
 struct rpl_parent {
   struct rpl_parent *next;

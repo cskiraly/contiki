@@ -64,7 +64,7 @@ LIST(notificationlist);
 static int num_routes = 0;
 
 #undef DEBUG
-#define DEBUG DEBUG_NONE
+#define DEBUG DEBUG_PRINT
 #include "net/ip/uip-debug.h"
 
 static void rm_routelist_callback(nbr_table_item_t *ptr);
@@ -280,6 +280,7 @@ uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
        check if we have room for this route. If not, we remove the
        least recently used one we have. */
 
+    /* TODO: make this optional */
     if(uip_ds6_route_num_routes() == UIP_DS6_ROUTE_NB) {
       /* Removing the oldest route entry from the route table. The
          least recently used route is the first route on the list. */
