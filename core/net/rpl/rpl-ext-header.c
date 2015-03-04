@@ -300,7 +300,7 @@ rpl_update_header_final(uip_ipaddr_t *addr)
           return 1;
         }
         parent = rpl_find_parent(default_instance->current_dag, addr);
-        if(parent == NULL || parent != parent->dag->preferred_parent) {
+        if(parent == NULL || parent != parent->dag->preferred_dao_parent) {
           UIP_EXT_HDR_OPT_RPL_BUF->flags = RPL_HDR_OPT_DOWN;
         }
         UIP_EXT_HDR_OPT_RPL_BUF->instance = default_instance->instance_id;

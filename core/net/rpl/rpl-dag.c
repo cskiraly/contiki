@@ -214,7 +214,7 @@ should_send_dao(rpl_instance_t *instance, rpl_dio_t *dio, rpl_parent_t *p)
     return 0;
   }
   /* check if the new DTSN is more recent */
-  return p == instance->current_dag->preferred_parent &&
+  return p == instance->current_dag->preferred_dao_parent &&
     (lollipop_greater_than(dio->dtsn, p->dtsn));
 }
 /*---------------------------------------------------------------------------*/
