@@ -761,6 +761,10 @@ dao_input(void)
       PRINTF(", ");
       PRINTLLADDR((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
       PRINTF("\n");
+      /* send explicit NACK;  TODO: this will fail since IP->MAC will not work */
+      if(flags & RPL_DAO_K_FLAG) {
+          dao_ack_output(instance, &dao_sender_addr, sequence, RPL_DAO_ACK_REJECT);
+      }
       return;
     }
   } else {
