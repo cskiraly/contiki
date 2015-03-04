@@ -908,7 +908,6 @@ dao_output_target(rpl_parent_t *parent, uip_ipaddr_t *prefix, uint8_t lifetime)
 static void
 dao_ack_input(void)
 {
-#if DEBUG
   unsigned char *buffer;
   uint8_t buffer_length;
   uint8_t instance_id;
@@ -922,11 +921,33 @@ dao_ack_input(void)
   sequence = buffer[2];
   status = buffer[3];
 
-  PRINTF("RPL: Received a DAO ACK with sequence number %d and status %d from ",
+  PRINTF("RPL: Received a DAO ACK with sequence number %u and status %u from ",
     sequence, status);
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
   PRINTF("\n");
-#endif /* DEBUG */
+
+  if (status == RPL_DAO_ACK_REJECT) {
+    rpl_instance_t *instance;
+    rpl_parent_t *parent;
+
+    if(sequence == dao_sequence) {
+      PRINTF("RPL: Ignoring a DAO-NACK with wrong sequnce number\n");
+      return;
+    }
+
+    instance = rpl_get_instance(instance_id);
+    if(instance == NULL) {
+      PRINTF("RPL: Ignoring a DAO-NACK for an unknown RPL instance(%u)\n",
+             instance_id);
+      return;
+    }
+
+    parent = rpl_find_parent(instance->current_dag, &UIP_IP_BUF->srcipaddr);
+    if(parent != NULL) {
+      return;
+    }
+    PRINTF("RPL: DAO-NACK, no parent???\n");
+ }
   uip_len = 0;
 }
 /*---------------------------------------------------------------------------*/
