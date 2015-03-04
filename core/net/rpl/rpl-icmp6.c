@@ -1025,6 +1025,10 @@ dao_ack_input(void)
 
     parent = rpl_find_parent(instance->current_dag, &UIP_IP_BUF->srcipaddr);
     if(parent != NULL) {
+        /* if DAO-NACK received, force parent change by increasing parent rank to INF */
+        PRINTF("RPL: DAO-NACK, changing parent\n");
+        parent->rank = INFINITE_RANK;
+        parent->flags |= RPL_PARENT_FLAG_UPDATED;
       return;
     }
     PRINTF("RPL: DAO-NACK, no parent???\n");
