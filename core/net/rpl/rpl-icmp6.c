@@ -736,7 +736,7 @@ dao_input(void)
                        ICMP6_RPL, RPL_CODE_DAO, buffer_length);
       }
       if(flags & RPL_DAO_K_FLAG) {
-        dao_ack_output(instance, &dao_sender_addr, sequence);
+        dao_ack_output(instance, &dao_sender_addr, sequence, RPL_DAO_ACK_ACCEPT);
       }
     }
     return;
@@ -794,7 +794,7 @@ fwd_dao:
                      ICMP6_RPL, RPL_CODE_DAO, buffer_length);
     }
     if(flags & RPL_DAO_K_FLAG) {
-      dao_ack_output(instance, &dao_sender_addr, sequence);
+      dao_ack_output(instance, &dao_sender_addr, sequence, RPL_DAO_ACK_ACCEPT);
     }
   }
   uip_len = 0;
@@ -931,11 +931,11 @@ dao_ack_input(void)
 }
 /*---------------------------------------------------------------------------*/
 void
-dao_ack_output(rpl_instance_t *instance, uip_ipaddr_t *dest, uint8_t sequence)
+dao_ack_output(rpl_instance_t *instance, uip_ipaddr_t *dest, uint8_t sequence, uint8_t status)
 {
   unsigned char *buffer;
 
-  PRINTF("RPL: Sending a DAO ACK with sequence number %d to ", sequence);
+  PRINTF("RPL: Sending a DAO ACK with sequence number %u status %u to ", sequence, status);
   PRINT6ADDR(dest);
   PRINTF("\n");
 
@@ -944,7 +944,7 @@ dao_ack_output(rpl_instance_t *instance, uip_ipaddr_t *dest, uint8_t sequence)
   buffer[0] = instance->instance_id;
   buffer[1] = 0;
   buffer[2] = sequence;
-  buffer[3] = 0;
+  buffer[3] = status;
 
   uip_icmp6_send(dest, ICMP6_RPL, RPL_CODE_DAO_ACK, 4);
 }
