@@ -803,7 +803,7 @@ dao_input(void)
 fwd_dao:
 #endif
 
-  if(learned_from == RPL_ROUTE_FROM_UNICAST_DAO) {
+  {
     if(dag->preferred_dao_parent != NULL &&
        rpl_get_parent_ipaddr(dag->preferred_dao_parent) != NULL) {
       PRINTF("RPL: Forwarding DAO to parent ");
