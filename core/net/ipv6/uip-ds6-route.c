@@ -286,6 +286,8 @@ uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
          least recently used route is the first route on the list. */
       uip_ds6_route_t *oldest;
 
+      PRINTF("No more route entries\n");
+      return NULL;
       oldest = list_tail(routelist); /* uip_ds6_route_head(); */
       PRINTF("uip_ds6_route_add: dropping route to ");
       PRINT6ADDR(&oldest->ipaddr);
