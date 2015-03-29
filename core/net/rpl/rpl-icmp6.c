@@ -734,8 +734,8 @@ dao_input(void)
         PRINTF("RPL: Forwarding no-path DAO to parent ");
         PRINT6ADDR(rpl_get_parent_ipaddr(dag->preferred_dao_parent));
         PRINTF("\n");
-        uip_icmp6_send(rpl_get_parent_ipaddr(dag->preferred_dao_parent),
-                       ICMP6_RPL, RPL_CODE_DAO, buffer_length);
+        dao_forward(rpl_get_parent_ipaddr(dag->preferred_dao_parent),
+                       ICMP6_RPL, RPL_CODE_DAO, buffer_length, rep);
       }
       if(flags & RPL_DAO_K_FLAG) {
         dao_ack_output(instance, &dao_sender_addr, sequence, RPL_DAO_ACK_ACCEPT);
@@ -814,8 +814,8 @@ fwd_dao:
       PRINTF("RPL: Forwarding DAO to parent ");
       PRINT6ADDR(rpl_get_parent_ipaddr(dag->preferred_dao_parent));
       PRINTF("\n");
-      uip_icmp6_send(rpl_get_parent_ipaddr(dag->preferred_dao_parent),
-                     ICMP6_RPL, RPL_CODE_DAO, buffer_length);
+      dao_forward(rpl_get_parent_ipaddr(dag->preferred_dao_parent),
+                     ICMP6_RPL, RPL_CODE_DAO, buffer_length, rep); /* rep could be NULL in case of multicast */
     }
     if(flags & RPL_DAO_K_FLAG) {
       /* IP stack needs sender to be among neighbors in order to send ICMP reply */
