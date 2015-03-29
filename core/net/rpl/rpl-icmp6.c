@@ -790,6 +790,10 @@ dao_input(void)
   if(rep == NULL) {
     RPL_STAT(rpl_stats.mem_overflows++);
     PRINTF("RPL: Could not add a route after receiving a DAO\n");
+    /* send explicit NACK */
+    if(flags & RPL_DAO_K_FLAG) {
+      dao_ack_output(instance, &dao_sender_addr, sequence, RPL_DAO_ACK_REJECT);
+    }
     return;
   }
 
