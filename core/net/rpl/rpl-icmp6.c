@@ -89,6 +89,7 @@ void RPL_DEBUG_DAO_OUTPUT(rpl_parent_t *);
 
 static uint8_t dao_sequence = RPL_LOLLIPOP_INIT;
 static uint8_t myaddr_dao_sequence;
+static uint8_t myaddr_parent_state;
 
 extern rpl_of_t RPL_OF;
 
@@ -804,6 +805,7 @@ dao_input(void)
   rep->state.lifetime = RPL_LIFETIME(instance, lifetime);
   rep->state.learned_from = learned_from;
   rep->state.nopath_received = 0;
+  rep->state.parent_state = ROUTE_ENTRY_DAO_NOT_SENT;
 
 #if RPL_CONF_MULTICAST
 fwd_dao:
@@ -843,6 +845,7 @@ dao_output(rpl_parent_t *parent, uint8_t lifetime)
   /* Sending a DAO with own prefix as target */
   dao_output_target(parent, &prefix, lifetime);
   myaddr_dao_sequence = dao_sequence;
+  myaddr_parent_state = ROUTE_ENTRY_DAO_SENT;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -934,6 +937,7 @@ dao_output_target(rpl_parent_t *parent, uip_ipaddr_t *prefix, uint8_t lifetime)
     uip_ds6_route_t *rep;
     if ((rep = uip_ds6_route_lookup(prefix))) {
       rep->state.dao_sequence = dao_sequence;
+      rep->state.parent_state = ROUTE_ENTRY_DAO_SENT;
     }
     uip_icmp6_send(rpl_get_parent_ipaddr(parent), ICMP6_RPL, RPL_CODE_DAO, pos);
   }
@@ -955,6 +959,7 @@ dao_forward(const uip_ipaddr_t *dest, int type, int code, int payload_len, uip_d
 
   if (rep) {
     rep->state.dao_sequence = dao_sequence;
+    rep->state.parent_state = ROUTE_ENTRY_DAO_SENT;
   }
   uip_icmp6_send(dest, type, code, payload_len);
 }
@@ -1019,6 +1024,11 @@ dao_ack_input(void)
     //select_dao_parent
     //send new dao
 
+    //mark route as mcaster
+    if (rep) {
+      rep->state.parent_state = ROUTE_ENTRY_DAO_NACKED;
+    } else {
+      myaddr_parent_state = ROUTE_ENTRY_DAO_NACKED;
     }
 
     //join mcaster group, if not already joined
@@ -1041,16 +1051,25 @@ dao_ack_input(void)
       }
     }
 
-    parent = rpl_find_parent(instance->current_dag, &UIP_IP_BUF->srcipaddr);
-    if(parent != NULL) {
-        /* if DAO-NACK received, force parent change by increasing parent rank to INF */
-        PRINTF("RPL: DAO-NACK, changing parent\n");
-        parent->rank = INFINITE_RANK;
-        parent->flags |= RPL_PARENT_FLAG_UPDATED;
-      return;
+    //parent = rpl_find_parent(instance->current_dag, &UIP_IP_BUF->srcipaddr);
+    //if(parent != NULL) {
+    //    /* if DAO-NACK received, force parent change by increasing parent rank to INF */
+    //    PRINTF("RPL: DAO-NACK, changing parent\n");
+    //    parent->rank = INFINITE_RANK;
+    //    parent->flags |= RPL_PARENT_FLAG_UPDATED;
+    //  return;
+    //}
+    //PRINTF("RPL: DAO-NACK, no parent???\n");
+  } else {
+    uip_ipaddr_t addr;
+
+    if (rep) {
+      rep->state.parent_state = ROUTE_ENTRY_DAO_ACKED;
+    } else {
+      myaddr_parent_state = ROUTE_ENTRY_DAO_ACKED;
     }
-    PRINTF("RPL: DAO-NACK, no parent???\n");
- }
+
+  }
   uip_len = 0;
 }
 /*---------------------------------------------------------------------------*/
