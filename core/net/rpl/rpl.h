@@ -254,6 +254,7 @@ rpl_rank_t rpl_get_parent_rank(uip_lladdr_t *addr);
 uint16_t rpl_get_parent_link_metric(const uip_lladdr_t *addr);
 void rpl_dag_init(void);
 
+int mcaster_insert_header(uip_ip6addr_t addr);
 
 /**
  * RPL modes

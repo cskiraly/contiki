@@ -178,6 +178,59 @@ set_rpl_opt(unsigned uip_ext_opt_offset)
 }
 /*---------------------------------------------------------------------------*/
 int
+mcaster_insert_header(uip_ip6addr_t addr)
+{
+  struct uip_mcaster_hdr *mcaster_hdr;
+  uint8_t next;
+  uint8_t temp_len;
+
+#define PRINTUIPBUF() {int p; PRINTF("UIP buffer: "); for(p = 0; p < uip_len; p++){PRINTF("%.2X", uip_buf[p]);}PRINTF("\n");}
+
+  PRINTUIPBUF();
+  PRINTF("MCASTER: inserting header:");
+  if(uip_len + sizeof(uip_mcaster_hdr) > UIP_BUFSIZE) {
+    PRINTF(" Packet too long: impossible to add mcaster header\n");
+    return 0;
+  }
+  if (UIP_IP_BUF->proto == UIP_PROTO_MCASTER) {
+    PRINTF(" header already exists\n");
+    return 0;
+  } else if (UIP_IP_BUF->proto == UIP_PROTO_HBHO) {
+    struct uip_hbho_hdr *hbho_hdr = ((void *)UIP_IP_BUF) + UIP_IPH_LEN;
+    if (hbho_hdr->next == UIP_PROTO_MCASTER) {
+      PRINTF(" header already exists\n");
+      return 0;
+    }
+    PRINTF(" after HBHO\n");
+    mcaster_hdr = ((void *)hbho_hdr) + (hbho_hdr->len+1)*8;
+    next = hbho_hdr->next;
+    hbho_hdr->next = UIP_PROTO_MCASTER;
+  } else {
+    PRINTF(" after IPH\n");
+    mcaster_hdr = ((void *)UIP_IP_BUF) + UIP_IPH_LEN;
+    next = UIP_IP_BUF->proto;
+    UIP_IP_BUF->proto = UIP_PROTO_MCASTER;
+  }
+
+  //PRINTUIPBUF();
+  memmove(((void*)mcaster_hdr) + sizeof(uip_mcaster_hdr), mcaster_hdr, uip_len - ((uint8_t *)mcaster_hdr - uip_buf));
+  memset(mcaster_hdr, 0, sizeof(uip_mcaster_hdr));
+  mcaster_hdr->next = next;
+  mcaster_hdr->len = sizeof(uip_mcaster_hdr)/8-1;
+  mcaster_hdr->destipaddr = addr;
+
+  uip_len += sizeof(uip_mcaster_hdr);
+  temp_len = UIP_IP_BUF->len[1];
+  UIP_IP_BUF->len[1] += mcaster_hdr->len;
+  if(UIP_IP_BUF->len[1] < temp_len) {
+    UIP_IP_BUF->len[0]++;
+  }
+
+  //PRINTUIPBUF();
+  return sizeof(uip_mcaster_hdr);
+}
+/*---------------------------------------------------------------------------*/
+int
 rpl_update_header_empty(void)
 {
   rpl_instance_t *instance;
@@ -238,10 +291,10 @@ rpl_update_header_empty(void)
     if((UIP_EXT_HDR_OPT_RPL_BUF->flags & RPL_HDR_OPT_DOWN)) {
       if(uip_ds6_route_lookup(&UIP_IP_BUF->destipaddr) == NULL) {
         UIP_EXT_HDR_OPT_RPL_BUF->flags |= RPL_HDR_OPT_FWD_ERR;
-        PRINTF("RPL forwarding error\n");
+        printf("RPL forwarding error");
         /* We should send back the packet to the originating parent,
            but it is not feasible yet, so we send a No-Path DAO instead */
-        PRINTF("RPL generate No-Path DAO\n");
+        printf(": RPL generate No-Path DAO\n");
         parent = rpl_get_parent((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
         if(parent != NULL) {
           dao_output_target(parent, &UIP_IP_BUF->destipaddr, RPL_ZERO_LIFETIME);
