@@ -1888,6 +1888,7 @@ struct uip_udp_hdr {
 #define UIP_PROTO_ROUTING     43
 #define UIP_PROTO_FRAG        44
 #define UIP_PROTO_NONE        59
+#define UIP_PROTO_MCASTER     70 //TODO: assign correct ID
 /** @} */
 
 /** @{ */
