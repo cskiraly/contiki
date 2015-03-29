@@ -959,6 +959,20 @@ dao_forward(const uip_ipaddr_t *dest, int type, int code, int payload_len, uip_d
   uip_icmp6_send(dest, type, code, payload_len);
 }
 /*---------------------------------------------------------------------------*/
+static uip_ds6_route_t *
+route_lookup_by_dao_seq(uint8_t seq)
+{
+  /* TODO: add wraparound protection? */
+  uip_ds6_route_t *r;
+  for(r = uip_ds6_route_head(); r != NULL; r = uip_ds6_route_next(r)) {
+    if (r->state.dao_sequence == seq) {
+      return r;
+    }
+  }
+
+  return NULL;
+}
+/*---------------------------------------------------------------------------*/
 static void
 dao_ack_input(void)
 {
@@ -967,6 +981,8 @@ dao_ack_input(void)
   uint8_t instance_id;
   uint8_t sequence;
   uint8_t status;
+  rpl_instance_t *instance;
+  uip_ds6_route_t *rep;
 
   buffer = UIP_ICMP_PAYLOAD;
   buffer_length = uip_len - uip_l3_icmp_hdr_len;
@@ -979,6 +995,19 @@ dao_ack_input(void)
     sequence, status);
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
   PRINTF("\n");
+  instance = rpl_get_instance(instance_id);
+  if(instance == NULL) {
+      printf("RPL: Ignoring a DAO-ACK for an unknown RPL instance(%u)\n",
+             instance_id);
+      return;
+  }
+
+  rep = route_lookup_by_dao_seq(sequence);
+  if(! rep && sequence != myaddr_dao_sequence) {
+      printf("RPL: Ignoring a DAO-ACK with wrong sequence number(%u). Multicast?\n",
+             sequence);
+      return;
+  }
 
   if (status == RPL_DAO_ACK_REJECT) {
     rpl_instance_t *instance;
