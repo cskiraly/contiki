@@ -1069,6 +1069,25 @@ dao_ack_input(void)
       myaddr_parent_state = ROUTE_ENTRY_DAO_ACKED;
     }
 
+    // check if we can leave the mcast group
+    uip_ip6addr(&addr, 0xFF1E,0,0,0,0,0,0x89,MCASTER_GROUP);
+    if (uip_ds6_maddr_lookup(&addr)) {
+      uip_ds6_route_t *r;
+      uint8_t allacked = 1;
+      r = uip_ds6_route_head();
+
+      while(r != NULL) {
+        if(r->state.parent_state != ROUTE_ENTRY_DAO_ACKED) {
+          allacked = 0;
+          break;
+        }
+        r = uip_ds6_route_next(r);
+      }
+      if (allacked && myaddr_parent_state == ROUTE_ENTRY_DAO_ACKED) {
+        printf("RPL: DAO-ACK, could leave multicast group\n");
+        //uip_ds6_maddr_rm(&addr);
+      }
+    }
   }
   uip_len = 0;
 }
@@ -1078,9 +1097,9 @@ dao_ack_output(rpl_instance_t *instance, uip_ipaddr_t *dest, uint8_t sequence, u
 {
   unsigned char *buffer;
 
-  PRINTF("RPL: Sending a DAO ACK with sequence number %u status %u to ", sequence, status);
-  PRINT6ADDR(dest);
-  PRINTF("\n");
+  printf("RPL: Sending a DAO ACK with sequence number %u status %u to ", sequence, status);
+  uip_debug_ipaddr_print(dest);
+  printf("\n");
 
   buffer = UIP_ICMP_PAYLOAD;
 
