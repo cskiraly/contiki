@@ -1010,8 +1010,7 @@ dao_ack_input(void)
   }
 
   if (status == RPL_DAO_ACK_REJECT) {
-    rpl_instance_t *instance;
-    rpl_parent_t *parent;
+    //rpl_parent_t *parent;
     // if NACK, set DAO_NACK flag and trigger new DAO (target?)
     //p = lookup(&UIP_IP_BUF->srcipaddr)
     //if (p) {
@@ -1020,16 +1019,26 @@ dao_ack_input(void)
     //select_dao_parent
     //send new dao
 
-    if(sequence == dao_sequence) {
-      PRINTF("RPL: Ignoring a DAO-NACK with wrong sequnce number\n");
-      return;
     }
 
-    instance = rpl_get_instance(instance_id);
-    if(instance == NULL) {
-      PRINTF("RPL: Ignoring a DAO-NACK for an unknown RPL instance(%u)\n",
-             instance_id);
-      return;
+    //join mcaster group, if not already joined
+    {
+      uip_ipaddr_t addr;
+      uip_ds6_maddr_t * rv;
+
+      /*
+       * IPHC will use stateless multicast compression for this destination
+       * (M=1, DAC=0), with 32 inline bits (1E 89 AB CD)
+       */
+#define MCASTER_GROUP 0xDDDD
+      uip_ip6addr(&addr, 0xFF1E,0,0,0,0,0,0x89,MCASTER_GROUP);
+      rv = uip_ds6_maddr_add(&addr);
+
+      if(rv) {
+        printf("RPL: DAO-NACK, joined multicast group ");
+        PRINT6ADDR(&uip_ds6_maddr_lookup(&addr)->ipaddr);
+        printf("\n");
+      }
     }
 
     parent = rpl_find_parent(instance->current_dag, &UIP_IP_BUF->srcipaddr);
