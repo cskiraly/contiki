@@ -88,6 +88,7 @@ void RPL_DEBUG_DAO_OUTPUT(rpl_parent_t *);
 #endif
 
 static uint8_t dao_sequence = RPL_LOLLIPOP_INIT;
+static uint8_t myaddr_dao_sequence;
 
 extern rpl_of_t RPL_OF;
 
@@ -591,7 +592,7 @@ dao_input(void)
   uint8_t pathsequence;
   */
   uip_ipaddr_t prefix;
-  uip_ds6_route_t *rep;
+  uip_ds6_route_t *rep = NULL;
   uint8_t buffer_length;
   int pos;
   int len;
@@ -841,6 +842,7 @@ dao_output(rpl_parent_t *parent, uint8_t lifetime)
 
   /* Sending a DAO with own prefix as target */
   dao_output_target(parent, &prefix, lifetime);
+  myaddr_dao_sequence = dao_sequence;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -929,6 +931,10 @@ dao_output_target(rpl_parent_t *parent, uip_ipaddr_t *prefix, uint8_t lifetime)
   PRINTF("\n");
 
   if(rpl_get_parent_ipaddr(parent) != NULL) {
+    uip_ds6_route_t *rep;
+    if ((rep = uip_ds6_route_lookup(prefix))) {
+      rep->state.dao_sequence = dao_sequence;
+    }
     uip_icmp6_send(rpl_get_parent_ipaddr(parent), ICMP6_RPL, RPL_CODE_DAO, pos);
   }
 }
@@ -947,6 +953,9 @@ dao_forward(const uip_ipaddr_t *dest, int type, int code, int payload_len, uip_d
   RPL_LOLLIPOP_INCREMENT(dao_sequence);
   UIP_ICMP_PAYLOAD[3] = dao_sequence;
 
+  if (rep) {
+    rep->state.dao_sequence = dao_sequence;
+  }
   uip_icmp6_send(dest, type, code, payload_len);
 }
 /*---------------------------------------------------------------------------*/
