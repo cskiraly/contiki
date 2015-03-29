@@ -813,6 +813,10 @@ fwd_dao:
                      ICMP6_RPL, RPL_CODE_DAO, buffer_length);
     }
     if(flags & RPL_DAO_K_FLAG) {
+      /* IP stack needs sender to be among neighbors in order to send ICMP reply */
+      if(uip_ds6_nbr_lookup(&dao_sender_addr) == NULL) {
+        uip_ds6_nbr_add(&dao_sender_addr, (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER), 0, NBR_REACHABLE);
+      }
       dao_ack_output(instance, &dao_sender_addr, sequence, RPL_DAO_ACK_ACCEPT);
     }
   }
