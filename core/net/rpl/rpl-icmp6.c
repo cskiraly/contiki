@@ -76,6 +76,7 @@ static void dis_input(void);
 static void dio_input(void);
 static void dao_input(void);
 static void dao_ack_input(void);
+static void dao_forward(const uip_ipaddr_t *dest, int type, int code, int payload_len, uip_ds6_route_t *rep);
 
 /* some debug callbacks useful when debugging RPL networks */
 #ifdef RPL_DEBUG_DIO_INPUT
@@ -930,6 +931,20 @@ dao_output_target(rpl_parent_t *parent, uip_ipaddr_t *prefix, uint8_t lifetime)
   if(rpl_get_parent_ipaddr(parent) != NULL) {
     uip_icmp6_send(rpl_get_parent_ipaddr(parent), ICMP6_RPL, RPL_CODE_DAO, pos);
   }
+}
+/*---------------------------------------------------------------------------*/
+/*
+ * Forward a DAO packet, changing the sequence number to the local one.
+ * rep: the routing entry for the DAO target, if known
+*/
+static void
+dao_forward(const uip_ipaddr_t *dest, int type, int code, int payload_len, uip_ds6_route_t *rep)
+{
+  if (payload_len < 4) {
+    return;
+  }
+
+  uip_icmp6_send(dest, type, code, payload_len);
 }
 /*---------------------------------------------------------------------------*/
 static void
