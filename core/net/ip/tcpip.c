@@ -589,6 +589,19 @@ tcpip_ipv6_output(void)
 	  }
 	  UIP_FALLBACK_INTERFACE.output();
 #else
+
+#if UIP_CONF_IPV6_RPL
+          if(rpl_update_header_final(nexthop)) {	//needed by mcaster, might be added earlier, where changing the IP
+            uip_len = 0;
+            return;
+          }
+#endif /* UIP_CONF_IPV6_RPL */
+          //add dest option with real dest address
+          //allow it only at the root? If not, what is the limit?
+          if(! mcaster_insert_header(UIP_IP_BUF->destipaddr)) {
+            uip_len = 0;
+            return;
+          }
           PRINTF("tcpip_ipv6_output: Destination off-link but no route\n");
 #endif /* !UIP_FALLBACK_INTERFACE */
           uip_len = 0;
