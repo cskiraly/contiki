@@ -602,7 +602,13 @@ tcpip_ipv6_output(void)
             uip_len = 0;
             return;
           }
-          PRINTF("tcpip_ipv6_output: Destination off-link but no route\n");
+          //change destination to mcaster
+#define MCASTER_GROUP 0xDDDD
+          printf("tcpip_ipv6_output: changing destination address to mcaster\n");
+          uip_ip6addr(&UIP_IP_BUF->destipaddr, 0xFF1E,0,0,0,0,0,0x89,MCASTER_GROUP);
+          //output packet as normal
+          tcpip_ipv6_output(); //lets hope we are not creating an infinite loop!
+          //PRINTF("tcpip_ipv6_output: Destination off-link but no route\n");
 #endif /* !UIP_FALLBACK_INTERFACE */
           uip_len = 0;
           return;
