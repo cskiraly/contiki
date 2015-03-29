@@ -917,6 +917,9 @@ dao_forward(const uip_ipaddr_t *dest, int type, int code, int payload_len, uip_d
     return;
   }
 
+  RPL_LOLLIPOP_INCREMENT(dao_sequence);
+  UIP_ICMP_PAYLOAD[3] = dao_sequence;
+
   uip_icmp6_send(dest, type, code, payload_len);
 }
 /*---------------------------------------------------------------------------*/
