@@ -58,7 +58,7 @@
 #include <limits.h>
 #include <string.h>
 
-#define DEBUG DEBUG_PRINT
+#define DEBUG DEBUG_NONE
 
 #include "net/ip/uip-debug.h"
 
@@ -697,18 +697,21 @@ dao_input(void)
     }
   }
 
-  PRINTF("RPL: DAO lifetime: %u, prefix length: %u prefix: ",
-          (unsigned)lifetime, (unsigned)prefixlen);
-  PRINT6ADDR(&prefix);
-  PRINTF("\n");
+  printf("RPL: DAO sequence: %u lifetime: %u, prefix length: %u prefix: ",
+          sequence, (unsigned)lifetime, (unsigned)prefixlen);
+  uip_debug_ipaddr_print(&prefix);
+  printf("\n");
 
 #if RPL_CONF_MULTICAST
   if(uip_is_addr_mcast_global(&prefix)) {
+    PRINTF("RPL: mcast DAO");
     mcast_group = uip_mcast6_route_add(&prefix);
     if(mcast_group) {
+      PRINTF(" (route added)");
       mcast_group->dag = dag;
       mcast_group->lifetime = RPL_LIFETIME(instance, lifetime);
     }
+    PRINTF("\n");
     goto fwd_dao;
   }
 #endif
@@ -794,7 +797,11 @@ dao_input(void)
   rep = rpl_add_route(dag, &prefix, prefixlen, &dao_sender_addr);
   if(rep == NULL) {
     RPL_STAT(rpl_stats.mem_overflows++);
-    PRINTF("RPL: Could not add a route after receiving a DAO\n");
+    PRINTF("RPL: Could not add a route after receiving a DAO (sending NACK) from ");
+    PRINT6ADDR(&dao_sender_addr);
+    PRINTF(", ");
+    PRINTLLADDR((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
+    PRINTF("\n");
     /* send explicit NACK */
     if(flags & RPL_DAO_K_FLAG) {
       dao_ack_output(instance, &dao_sender_addr, sequence, RPL_DAO_ACK_REJECT);
@@ -927,11 +934,12 @@ dao_output_target(rpl_parent_t *parent, uip_ipaddr_t *prefix, uint8_t lifetime)
   buffer[pos++] = 0; /* path seq - ignored */
   buffer[pos++] = lifetime;
 
-  PRINTF("RPL: Sending DAO with prefix ");
-  PRINT6ADDR(prefix);
-  PRINTF(" to ");
-  PRINT6ADDR(rpl_get_parent_ipaddr(parent));
-  PRINTF("\n");
+  printf("RPL: Sending DAO with sequence number %u and lifetime %u prefix ",
+    dao_sequence, lifetime);
+  uip_debug_ipaddr_print(prefix);
+  printf(" to ");
+  uip_debug_ipaddr_print(rpl_get_parent_ipaddr(parent));
+  printf("\n");
 
   if(rpl_get_parent_ipaddr(parent) != NULL) {
     uip_ds6_route_t *rep;
@@ -996,10 +1004,11 @@ dao_ack_input(void)
   sequence = buffer[2];
   status = buffer[3];
 
-  PRINTF("RPL: Received a DAO ACK with sequence number %u and status %u from ",
+  printf("RPL: Received a DAO ACK with sequence number %u and status %u from ",
     sequence, status);
-  PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
-  PRINTF("\n");
+  uip_debug_ipaddr_print(&UIP_IP_BUF->srcipaddr);
+  printf("\n");
+
   instance = rpl_get_instance(instance_id);
   if(instance == NULL) {
       printf("RPL: Ignoring a DAO-ACK for an unknown RPL instance(%u)\n",

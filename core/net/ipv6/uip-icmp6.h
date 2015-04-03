@@ -128,7 +128,6 @@ void
 uip_icmp6_send(const uip_ipaddr_t *dest, int type, int code, int payload_len);
 
 
-
 typedef void (* uip_icmp6_echo_reply_callback_t)(uip_ipaddr_t *source,
                                                  uint8_t ttl,
                                                  uint8_t *data,

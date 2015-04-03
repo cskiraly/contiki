@@ -115,6 +115,7 @@ uint8_t
 tcpip_output(const uip_lladdr_t *a)
 {
   int ret;
+  PRINTF("tcpip_output\n");
   if(outputfunc != NULL) {
     ret = outputfunc(a);
     return ret;
@@ -566,14 +567,18 @@ tcpip_ipv6_output(void)
        link. If so, we simply use the destination address as our
        nexthop address. */
     if(uip_ds6_is_addr_onlink(&UIP_IP_BUF->destipaddr)){
+      printf("tcpip_ipv6_output: onlink\n");
       nexthop = &UIP_IP_BUF->destipaddr;
     } else {
       uip_ds6_route_t *route;
       /* Check if we have a route to the destination address. */
       route = uip_ds6_route_lookup(&UIP_IP_BUF->destipaddr);
 
-      /* No route was found - we send to the default route instead. */
-      if(route == NULL) {
+      if(route == NULL && uip_ds6_nbr_lookup(&UIP_IP_BUF->destipaddr)) {
+        printf("tcpip_ipv6_output: no route, but found in nbr\n");
+        nexthop = &UIP_IP_BUF->destipaddr;
+      } else if(route == NULL) {
+        /* No route was found - we send to the default route instead. */
         PRINTF("tcpip_ipv6_output: no route found, using default route\n");
         nexthop = uip_ds6_defrt_choose();
         if(nexthop == NULL) {
@@ -744,6 +749,13 @@ tcpip_ipv6_output(void)
     return;
   }
   /* Multicast IP destination address. */
+  PRINTF("Multicast IP destination address\n");
+//#if UIP_CONF_IPV6_RPL //moved earlier!
+//    if(rpl_update_header_final(nexthop)) {	//needed by mcaster, might be added earlier, where changing the IP
+//      uip_len = 0;
+//      return;
+//    }
+//#endif /* UIP_CONF_IPV6_RPL */
   tcpip_output(NULL);
   uip_len = 0;
   uip_ext_len = 0;

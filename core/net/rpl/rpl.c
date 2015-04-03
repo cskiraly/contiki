@@ -136,17 +136,17 @@ rpl_purge_routes(void)
       uip_ipaddr_copy(&prefix, &r->ipaddr);
       uip_ds6_route_rm(r);
       r = uip_ds6_route_head();
-      PRINTF("No more routes to ");
-      PRINT6ADDR(&prefix);
+      printf("No more routes to ");
+      uip_debug_ipaddr_print(&prefix);
       dag = default_instance->current_dag;
       /* Propagate this information with a No-Path DAO to preferred parent if we are not a RPL Root */
       if(dag->rank != ROOT_RANK(default_instance)) {
-        PRINTF(" -> generate No-Path DAO\n");
+        printf(" -> generate No-Path DAO\n");
         dao_output_target(dag->preferred_dao_parent, &prefix, RPL_ZERO_LIFETIME);
         /* Don't schedule more than 1 No-Path DAO, let next iteration handle that */
         return;
       }
-      PRINTF("\n");
+      printf("\n");
     } else {
       r = uip_ds6_route_next(r);
     }

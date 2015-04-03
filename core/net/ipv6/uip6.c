@@ -878,6 +878,16 @@ ext_hdr_options_process(void)
 #endif /* UIP_CONF_IPV6_RPL */
         uip_ext_opt_offset += (UIP_EXT_HDR_OPT_BUF->len) + 2;
         return 0;
+      //case UIP_EXT_HDR_OPT_MCASTER:
+        //PRINTF("Processing MCASTER option\n");
+        // get real destination from option
+        // check if it is a node for which we took responsability
+        // change destination
+        //UIP_IP_BUF->destipaddr = UIP_EXT_HDR_OPT_MCASTER_BUF->destipaddr;
+        // should we remove the header?
+        // resubmit packet for processing
+        //uip_ext_opt_offset += (UIP_EXT_HDR_OPT_BUF->len) + 2;
+        //break;
       default:
         /*
          * check the two highest order bits of the option
@@ -1172,6 +1182,7 @@ uip_process(uint8_t flag)
    */
 #if UIP_CONF_IPV6_MULTICAST
   if(uip_is_addr_mcast_routable(&UIP_IP_BUF->destipaddr)) {
+    PRINTF("uip6:multicast packet processed\n");
     if(UIP_MCAST6.in() == UIP_MCAST6_ACCEPT) {
       /* Deliver up the stack */
       goto process;

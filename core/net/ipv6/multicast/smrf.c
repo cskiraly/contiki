@@ -49,7 +49,7 @@
 #include "net/netstack.h"
 #include <string.h>
 
-#define DEBUG DEBUG_NONE
+#define DEBUG DEBUG_PRINT
 #include "net/ip/uip-debug.h"
 
 /*---------------------------------------------------------------------------*/
@@ -97,6 +97,7 @@ in()
    * so that things can compile with the new RPL code. This needs updated to
    * read instance ID from the RPL HBHO and use the correct parent accordingly
    */
+  PRINTF("SMRF: in\n");
   d = rpl_get_any_dag();
   if(!d) {
     UIP_MCAST6_STATS_ADD(mcast_dropped);
@@ -134,6 +135,7 @@ in()
   /* If we have an entry in the mcast routing table, something with
    * a higher RPL rank (somewhere down the tree) is a group member */
   if(uip_mcast6_route_lookup(&UIP_IP_BUF->destipaddr)) {
+    PRINTF("SMRF: will forward\n");
     /* If we enter here, we will definitely forward */
     UIP_MCAST6_STATS_ADD(mcast_fwd);
 
@@ -188,6 +190,7 @@ in()
 static void
 init()
 {
+  PRINTF("SMRF: init\n");
   UIP_MCAST6_STATS_INIT(NULL);
 
   uip_mcast6_route_init();

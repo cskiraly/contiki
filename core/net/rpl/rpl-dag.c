@@ -688,7 +688,7 @@ rpl_select_dag(rpl_instance_t *instance, rpl_parent_t *p)
     PRINTF("RPL: New rank unacceptable!\n");
     rpl_set_preferred_parent(instance->current_dag, NULL);
     if(instance->mop != RPL_MOP_NO_DOWNWARD_ROUTES && last_parent != NULL) {
-      /* Send a No-Path DAO to the removed preferred parent. */
+      printf("Send a No-Path DAO to the removed preferred parent1\n");
       dao_output(last_parent, RPL_ZERO_LIFETIME);
     }
     return NULL;
@@ -701,7 +701,7 @@ rpl_select_dag(rpl_instance_t *instance, rpl_parent_t *p)
     RPL_STAT(rpl_stats.parent_switch++);
     if(instance->mop != RPL_MOP_NO_DOWNWARD_ROUTES) {
       if(last_parent != NULL) {
-        /* Send a No-Path DAO to the removed preferred parent. */
+        printf("Send a No-Path DAO to the removed preferred parent2\n");
         dao_output(last_parent, RPL_ZERO_LIFETIME);
       }
       /* The DAO parent set changed - schedule a DAO transmission. */
@@ -779,6 +779,7 @@ rpl_nullify_parent(rpl_parent_t *parent)
         uip_ds6_defrt_rm(dag->instance->def_route);
         dag->instance->def_route = NULL;
       }
+      printf("rpl_nullify_parent: Send No-Path DAO\n");
       dao_output(parent, RPL_ZERO_LIFETIME);
     }
   }
