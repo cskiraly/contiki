@@ -705,13 +705,17 @@ dao_input(void)
 #if RPL_CONF_MULTICAST
   if(uip_is_addr_mcast_global(&prefix)) {
     PRINTF("RPL: mcast DAO");
-    mcast_group = uip_mcast6_route_add(&prefix);
-    if(mcast_group) {
-      PRINTF(" (route added)");
-      mcast_group->dag = dag;
-      mcast_group->lifetime = RPL_LIFETIME(instance, lifetime);
-    }
-    PRINTF("\n");
+    if (uip_mcast6_route_lookup(&prefix)) { /* TODO: could be better to check for ACK status as well */
+      PRINTF(" (route already exists)\n");
+      return;
+    } else {
+      mcast_group = uip_mcast6_route_add(&prefix);
+      if(mcast_group) {
+        PRINTF(" (route added)");
+        mcast_group->dag = dag;
+        mcast_group->lifetime = RPL_LIFETIME(instance, lifetime);
+      }
+      PRINTF("\n");
     goto fwd_dao;
   }
 #endif
