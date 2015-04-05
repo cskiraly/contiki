@@ -75,6 +75,8 @@ static uint8_t fwd_spread;
 static void
 mcast_fwd(void *p)
 {
+  PRINTF("SMRF: %u bytes: delayed fwd\n",
+             uip_len);
   memcpy(uip_buf, &mcast_buf, mcast_len);
   uip_len = mcast_len;
   UIP_IP_BUF->ttl--;
@@ -107,18 +109,7 @@ in()
   UIP_MCAST6_STATS_ADD(mcast_in_all);
   UIP_MCAST6_STATS_ADD(mcast_in_unique);
 
-  /* Retrieve our preferred parent's LL address */
-  parent_ipaddr = rpl_get_parent_ipaddr(d->preferred_parent);
-  parent_lladdr = uip_ds6_nbr_lladdr_from_ipaddr(parent_ipaddr);
-
-  if(parent_lladdr == NULL ||
-     memcmp(parent_lladdr, packetbuf_addr(PACKETBUF_ADDR_SENDER),
-            UIP_LLADDR_LEN)) {
-    /*
-     * We accept a datagram for forwarding only if it arrived from our preferred parent.
-     */
-    PRINTF("SMRF: Routable in but not from parent; not forwarding\n");
-  } else if(UIP_IP_BUF->ttl <= 1) {
+  if(UIP_IP_BUF->ttl <= 1) {
     PRINTF("SMRF: TTL reached; not forwarding\n");
   } else if(uip_mcast6_route_lookup(&UIP_IP_BUF->destipaddr)) {
     /* If we have an entry in the mcast routing table, something with
@@ -141,27 +132,53 @@ in()
     }
 #endif
 
-    if(fwd_delay == 0) {
-      /* No delay required, send it, do it now, why wait? */
-      UIP_IP_BUF->ttl--;
-      tcpip_output(NULL);
-      UIP_IP_BUF->ttl++;        /* Restore before potential upstack delivery */
-    } else {
-      /* Randomise final delay in [D , D*Spread], step D */
-      fwd_spread = SMRF_INTERVAL_COUNT;
-      if(fwd_spread > SMRF_MAX_SPREAD) {
-        fwd_spread = SMRF_MAX_SPREAD;
-      }
+    fwd_spread = SMRF_INTERVAL_COUNT;
+    if(fwd_spread > SMRF_MAX_SPREAD) {
+      fwd_spread = SMRF_MAX_SPREAD;
+    }
+
+    /* Retrieve our preferred parent's LL address */
+    parent_ipaddr = rpl_get_parent_ipaddr(d->preferred_parent);
+    parent_lladdr = uip_ds6_nbr_lladdr_from_ipaddr(parent_ipaddr);
+
+    if(parent_lladdr == NULL ||
+       memcmp(parent_lladdr, packetbuf_addr(PACKETBUF_ADDR_SENDER),
+              UIP_LLADDR_LEN)) {
+      /*
+       * If packet arrived from our preferred parent, forward it.
+       * Otherwise, store it, and forward only after a timeout, if the same packet is not received again from preferred parent.
+       */
+      PRINTF("SMRF: Routable in but not from parent; delaying\n");
+
       if(fwd_spread) {
-        fwd_delay = fwd_delay * (1 + ((random_rand() >> 11) % fwd_spread));
+        fwd_delay *= fwd_spread;
       }
 
       memcpy(&mcast_buf, uip_buf, uip_len);
       mcast_len = uip_len;
       ctimer_set(&mcast_periodic, fwd_delay, mcast_fwd, NULL);
+      PRINTF("SMRF: %u bytes: might fwd in %u [%u]\n",
+             uip_len, fwd_delay, fwd_spread);
+
+    } else {
+      if(fwd_delay == 0) {
+        /* No delay required, send it, do it now, why wait? */
+        UIP_IP_BUF->ttl--;
+        tcpip_output(NULL);
+        UIP_IP_BUF->ttl++;        /* Restore before potential upstack delivery */
+      } else {
+        /* Randomise final delay in [D , D*Spread], step D */
+        if(fwd_spread) {
+          fwd_delay = fwd_delay * (1 + ((random_rand() >> 11) % fwd_spread));
+        }
+
+        memcpy(&mcast_buf, uip_buf, uip_len);
+        mcast_len = uip_len;
+        ctimer_set(&mcast_periodic, fwd_delay, mcast_fwd, NULL);
+      }
+      PRINTF("SMRF: %u bytes: fwd in %u [%u]\n",
+             uip_len, fwd_delay, fwd_spread);
     }
-    PRINTF("SMRF: %u bytes: fwd in %u [%u]\n",
-           uip_len, fwd_delay, fwd_spread);
   }
 
   /* Done with this packet unless we are a member of the mcast group */
