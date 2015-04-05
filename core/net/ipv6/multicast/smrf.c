@@ -124,17 +124,14 @@ in()
     return UIP_MCAST6_DROP;
   }
 
-  if(UIP_IP_BUF->ttl <= 1) {
-    UIP_MCAST6_STATS_ADD(mcast_dropped);
-    return UIP_MCAST6_DROP;
-  }
-
   UIP_MCAST6_STATS_ADD(mcast_in_all);
   UIP_MCAST6_STATS_ADD(mcast_in_unique);
 
-  /* If we have an entry in the mcast routing table, something with
-   * a higher RPL rank (somewhere down the tree) is a group member */
-  if(uip_mcast6_route_lookup(&UIP_IP_BUF->destipaddr)) {
+  if(UIP_IP_BUF->ttl <= 1) {
+    PRINTF("SMRF: TTL reached, not forwarding\n");
+  } else if(uip_mcast6_route_lookup(&UIP_IP_BUF->destipaddr)) {
+    /* If we have an entry in the mcast routing table, something with
+     * a higher RPL rank (somewhere down the tree) is a group member */
     PRINTF("SMRF: will forward\n");
     /* If we enter here, we will definitely forward */
     UIP_MCAST6_STATS_ADD(mcast_fwd);
