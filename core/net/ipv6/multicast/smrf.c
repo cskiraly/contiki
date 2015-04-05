@@ -104,31 +104,22 @@ in()
     return UIP_MCAST6_DROP;
   }
 
+  UIP_MCAST6_STATS_ADD(mcast_in_all);
+  UIP_MCAST6_STATS_ADD(mcast_in_unique);
+
   /* Retrieve our preferred parent's LL address */
   parent_ipaddr = rpl_get_parent_ipaddr(d->preferred_parent);
   parent_lladdr = uip_ds6_nbr_lladdr_from_ipaddr(parent_ipaddr);
 
-  if(parent_lladdr == NULL) {
-    UIP_MCAST6_STATS_ADD(mcast_dropped);
-    return UIP_MCAST6_DROP;
-  }
-
-  /*
-   * We accept a datagram if it arrived from our preferred parent, discard
-   * otherwise.
-   */
-  if(memcmp(parent_lladdr, packetbuf_addr(PACKETBUF_ADDR_SENDER),
+  if(parent_lladdr == NULL ||
+     memcmp(parent_lladdr, packetbuf_addr(PACKETBUF_ADDR_SENDER),
             UIP_LLADDR_LEN)) {
-    PRINTF("SMRF: Routable in but SMRF ignored it\n");
-    UIP_MCAST6_STATS_ADD(mcast_dropped);
-    return UIP_MCAST6_DROP;
-  }
-
-  UIP_MCAST6_STATS_ADD(mcast_in_all);
-  UIP_MCAST6_STATS_ADD(mcast_in_unique);
-
-  if(UIP_IP_BUF->ttl <= 1) {
-    PRINTF("SMRF: TTL reached, not forwarding\n");
+    /*
+     * We accept a datagram for forwarding only if it arrived from our preferred parent.
+     */
+    PRINTF("SMRF: Routable in but not from parent; not forwarding\n");
+  } else if(UIP_IP_BUF->ttl <= 1) {
+    PRINTF("SMRF: TTL reached; not forwarding\n");
   } else if(uip_mcast6_route_lookup(&UIP_IP_BUF->destipaddr)) {
     /* If we have an entry in the mcast routing table, something with
      * a higher RPL rank (somewhere down the tree) is a group member */
