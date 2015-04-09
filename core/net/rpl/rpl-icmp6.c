@@ -716,7 +716,8 @@ dao_input(void)
         mcast_group->lifetime = RPL_LIFETIME(instance, lifetime);
       }
       PRINTF("\n");
-    goto fwd_dao;
+      goto fwd_dao;
+    }
   }
 #endif
 
