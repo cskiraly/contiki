@@ -89,7 +89,7 @@ void RPL_DEBUG_DAO_OUTPUT(rpl_parent_t *);
 
 static uint8_t dao_sequence = RPL_LOLLIPOP_INIT;
 static uint8_t myaddr_dao_sequence;
-static uint8_t myaddr_parent_state;
+static uint8_t myaddr_parent_state = ROUTE_ENTRY_DAO_NOT_SENT;
 
 extern rpl_of_t RPL_OF;
 
