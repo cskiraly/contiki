@@ -1076,6 +1076,7 @@ dao_ack_input(void)
     //PRINTF("RPL: DAO-NACK, no parent???\n");
   } else {
     uip_ipaddr_t addr;
+    uip_ds6_maddr_t *maddr;
 
     if (rep) {
       rep->state.parent_state = ROUTE_ENTRY_DAO_ACKED;
@@ -1085,7 +1086,7 @@ dao_ack_input(void)
 
     // check if we can leave the mcast group
     uip_ip6addr(&addr, 0xFF1E,0,0,0,0,0,0x89,MCASTER_GROUP);
-    if (uip_ds6_maddr_lookup(&addr)) {
+    if ((maddr = uip_ds6_maddr_lookup(&addr))) {
       uip_ds6_route_t *r;
       uint8_t allacked = 1;
       r = uip_ds6_route_head();
@@ -1099,7 +1100,7 @@ dao_ack_input(void)
       }
       if (allacked && myaddr_parent_state == ROUTE_ENTRY_DAO_ACKED) {
         printf("RPL: DAO-ACK, could leave multicast group\n");
-        //uip_ds6_maddr_rm(&addr);
+        uip_ds6_maddr_rm(maddr);
       }
     }
   }
