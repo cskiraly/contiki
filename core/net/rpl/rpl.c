@@ -307,6 +307,22 @@ rpl_init(void)
   uip_create_linklocal_rplnodes_mcast(&rplmaddr);
   uip_ds6_maddr_add(&rplmaddr);
 
+  //join mcaster group
+  {
+    uip_ipaddr_t addr;
+    uip_ds6_maddr_t * rv;
+
+#define MCASTER_GROUP 0xDDDD
+    uip_ip6addr(&addr, 0xFF1E,0,0,0,0,0,0x89,MCASTER_GROUP);
+    rv = uip_ds6_maddr_add(&addr);
+
+    if(rv) {
+      printf("RPL: joined mcaster group ");
+      PRINT6ADDR(&uip_ds6_maddr_lookup(&addr)->ipaddr);
+      printf("\n");
+    }
+  }
+
 #if RPL_CONF_STATS
   memset(&rpl_stats, 0, sizeof(rpl_stats));
 #endif
