@@ -114,7 +114,7 @@ in()
   } else if(uip_mcast6_route_lookup(&UIP_IP_BUF->destipaddr)) {
     /* If we have an entry in the mcast routing table, something with
      * a higher RPL rank (somewhere down the tree) is a group member */
-    PRINTF("SMRF: will forward\n");
+    PRINTF("SMRF: will forward, ttl:%u\n", UIP_IP_BUF->ttl);
     /* If we enter here, we will definitely forward */
     UIP_MCAST6_STATS_ADD(mcast_fwd);
 
