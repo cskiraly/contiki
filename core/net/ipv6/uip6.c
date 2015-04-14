@@ -1378,13 +1378,19 @@ uip_process(uint8_t flag)
           //remove mcaster header?
           //check if our destination?
           if(! uip_ds6_is_my_addr(&UIP_IP_BUF->destipaddr)) {  //if it is for me, let input processing go on
-            if(uip_ds6_route_lookup(&UIP_IP_BUF->destipaddr)) {
-              //resubmit for forwarding or send it out directly?
-              printf("; not ours, forwarding\n");
-              goto send; //send directly TODO: reduce TTL, remove header?
-              //uip_input(); return; //resubmit for processing by uIP
+            uip_ds6_route_t *r;
+            if((r = uip_ds6_route_lookup(&UIP_IP_BUF->destipaddr))) {
+              if (r->state.parent_state == ROUTE_ENTRY_DAO_NACKED) {
+                //resubmit for forwarding or send it out directly?
+                printf("; not ours, route -> forwarding\n");
+                goto send; //send directly TODO: reduce TTL, remove header?
+                //uip_input(); return; //resubmit for processing by uIP
+              } else {
+                printf("; not ours, route, but state %u -> dropping\n", r->state.parent_state);
+                goto drop;
+              }
             } else  {
-              printf("; not ours, dropping\n");
+              printf("; not ours, no route -> dropping\n");
               goto drop;
             }
           }
