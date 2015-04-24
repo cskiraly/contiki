@@ -120,6 +120,9 @@ in()
     PRINTF("SMRF: Routable in but not from parent; not forwarding\n");
   } else if(UIP_IP_BUF->ttl <= 1) {
     PRINTF("SMRF: TTL reached; not forwarding\n");
+#ifdef SMRF_DROP_ON_TTL
+    return UIP_MCAST6_DROP;
+#endif
   } else if(uip_mcast6_route_lookup(&UIP_IP_BUF->destipaddr)) {
     /* If we have an entry in the mcast routing table, something with
      * a higher RPL rank (somewhere down the tree) is a group member */
