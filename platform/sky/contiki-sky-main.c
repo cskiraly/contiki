@@ -138,7 +138,7 @@ set_rime_addr(void)
   int i;
 
   memset(&addr, 0, sizeof(linkaddr_t));
-#if NETSTACK_CONF_WITH_IPV6
+#if NETSTACK_CONF_WITH_IPV6 && !WITH_TINYOS_AUTO_IDS
   memcpy(addr.u8, ds2411_id, sizeof(addr.u8));
 #else
   if(node_id == 0) {
