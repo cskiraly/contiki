@@ -118,6 +118,9 @@ in()
      * We accept a datagram for forwarding only if it arrived from our preferred parent.
      */
     PRINTF("SMRF: Routable in but not from parent; not forwarding\n");
+#ifdef SMRF_DROP_ON_NOTFROMPARENT
+    return UIP_MCAST6_DROP;
+#endif
   } else if(UIP_IP_BUF->ttl <= 1) {
     PRINTF("SMRF: TTL reached; not forwarding\n");
 #ifdef SMRF_DROP_ON_TTL
