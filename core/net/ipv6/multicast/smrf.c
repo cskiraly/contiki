@@ -89,6 +89,17 @@ in()
   uip_ipaddr_t *parent_ipaddr;  /* Our pref. parent's IPv6 address */
   const uip_lladdr_t *parent_lladdr;  /* Our pref. parent's LL address */
 
+  PRINTF("SMRF: in\n");
+#if SMRF_CACHE_AND_COMPARE
+  if (mcast_len == uip_len
+     && memcmp(mcast_buf.u8 + UIP_LLH_LEN, uip_buf + UIP_LLH_LEN, offsetof(struct uip_ip_hdr,ttl)) == 0
+     && memcmp(mcast_buf.u8 + UIP_LLH_LEN + offsetof(struct uip_ip_hdr,ttl) + 1, uip_buf + UIP_LLH_LEN + offsetof(struct uip_ip_hdr,ttl) + 1, uip_len - UIP_LLH_LEN - offsetof(struct uip_ip_hdr,ttl) - 1 - 10) == 0)
+  {
+    PRINTF("SMRF: Duplicate\n");
+    return UIP_MCAST6_DROP;
+  }
+#endif
+
   /*
    * Fetch a pointer to the LL address of our preferred parent
    *
@@ -97,7 +108,6 @@ in()
    * so that things can compile with the new RPL code. This needs updated to
    * read instance ID from the RPL HBHO and use the correct parent accordingly
    */
-  PRINTF("SMRF: in\n");
   d = rpl_get_any_dag();
   if(!d) {
     UIP_MCAST6_STATS_ADD(mcast_dropped);
@@ -152,6 +162,10 @@ in()
       UIP_IP_BUF->ttl--;
       tcpip_output(NULL);
       UIP_IP_BUF->ttl++;        /* Restore before potential upstack delivery */
+#if SMRF_CACHE_AND_COMPARE
+      memcpy(&mcast_buf, uip_buf, uip_len);
+      mcast_len = uip_len;
+#endif
     } else {
       /* Randomise final delay in [D , D*Spread], step D */
       fwd_spread = SMRF_INTERVAL_COUNT;
