@@ -762,7 +762,7 @@ dao_input(void)
                               0, NBR_REACHABLE)) != NULL) {
       nbr_table_stats_t *stats;
       stats = nbr_table_get_stats();
-      if (stats->locked < stats->max-1) {
+      if (stats->locked < stats->max-4) {
         ///* lock next hop in nbr table */
         //nbr_table_lock(rpl_parents, &dao_sender_addr);
         /* set reachable timer */
