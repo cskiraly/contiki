@@ -101,11 +101,11 @@ uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
     NEIGHBOR_STATE_CHANGED(nbr);
     return nbr;
   } else {
-    PRINTF("uip_ds6_nbr_add drop ip addr ");
+    printf("uip_ds6_nbr_add drop ip addr ");
     PRINT6ADDR(ipaddr);
     PRINTF(" link addr (%p) ", lladdr);
     PRINTLLADDR(lladdr);
-    PRINTF(" state %u\n", state);
+    printf(" state %u\n", state);
     return NULL;
   }
 }

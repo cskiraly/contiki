@@ -569,7 +569,7 @@ rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
     /* Add parent in rpl_parents */
     p = nbr_table_add_lladdr(rpl_parents, (linkaddr_t *)lladdr);
     if(p == NULL) {
-      PRINTF("RPL: rpl_add_parent p NULL\n");
+      printf("RPL: rpl_add_parent p NULL\n");
     } else {
       p->dag = dag;
       p->rank = dio->rank;
