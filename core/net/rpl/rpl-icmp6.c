@@ -795,6 +795,16 @@ dao_input(void)
     }
   } else {
     PRINTF("RPL: Neighbor already in neighbor cache\n");
+    nbr_table_stats_t *stats;
+    stats = nbr_table_get_stats();
+    if (stats->locked >= stats->max-4) {
+      PRINTF("RPL: limiting fan-out to %u (locked:%u), dropping DAO\n", stats->max-4, stats->locked);
+      /* send explicit NACK */
+      if(flags & RPL_DAO_K_FLAG) {
+        dao_ack_output(instance, &dao_sender_addr, sequence, RPL_DAO_ACK_REJECT);
+      }
+      return;
+    }
   }
 
   rpl_lock_parent(parent); //???? this is where one might want to lock the route's next hop, but not the parent!!!
