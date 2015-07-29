@@ -310,6 +310,8 @@ void rpl_purge_routes(void);
 
 /* Lock a parent in the neighbor cache. */
 void rpl_lock_parent(rpl_parent_t *p);
+/* Get locked status of parent in the neighbor cache. */
+int rpl_parent_is_locked(rpl_parent_t *p);
 
 /* Objective function. */
 rpl_of_t *rpl_find_of(rpl_ocp_t);

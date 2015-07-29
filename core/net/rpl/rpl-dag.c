@@ -1323,4 +1323,10 @@ rpl_lock_parent(rpl_parent_t *p)
   nbr_table_lock(rpl_parents, p);
 }
 /*---------------------------------------------------------------------------*/
+int
+rpl_parent_is_locked(rpl_parent_t *p)
+{
+  return nbr_table_is_locked(rpl_parents, p);
+}
+/*---------------------------------------------------------------------------*/
 /** @} */
