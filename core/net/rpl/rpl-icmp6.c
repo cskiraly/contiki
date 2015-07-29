@@ -797,7 +797,7 @@ dao_input(void)
     printf("RPL: Neighbor already in neighbor cache\n");
     nbr_table_stats_t *stats;
     stats = nbr_table_get_stats();
-    if (stats->locked >= stats->max-4) {
+    if (stats->locked >= stats->max-4 && ! rpl_parent_is_locked(parent)) {
       printf("RPL: limiting fan-out to %u (locked:%u), dropping DAO\n", stats->max-4, stats->locked);
       /* send explicit NACK */
       if(flags & RPL_DAO_K_FLAG) {
