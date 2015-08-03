@@ -291,7 +291,7 @@ uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
       oldest = list_tail(routelist); /* uip_ds6_route_head(); */
       printf("uip_ds6_route_add: dropping route to ");
       PRINT6ADDR(&oldest->ipaddr);
-      prinf("\n");
+      printf("\n");
       uip_ds6_route_rm(oldest);
     }
 
