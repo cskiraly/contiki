@@ -807,7 +807,7 @@ dao_input(void)
     }
   }
 
-  rpl_lock_parent(parent); //???? this is where one might want to lock the route's next hop, but not the parent!!!
+  rpl_lock_parent(parent); // locking the next hop router (called parent here, but neighbor would be a better term)
 
   rep = rpl_add_route(dag, &prefix, prefixlen, &dao_sender_addr);
   if(rep == NULL) {

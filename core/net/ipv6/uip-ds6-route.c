@@ -325,7 +325,7 @@ uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
     }
 
     /* lock route next hop with live route entry */
-    nbr_table_lock(nbr_routes,routes);
+    nbr_table_lock(nbr_routes,routes); // locking is the responsability of the caller
 
     /* Allocate a routing entry and populate it. */
     r = memb_alloc(&routememb);
@@ -415,7 +415,7 @@ uip_ds6_route_rm(uip_ds6_route_t *route)
       /* If this was the only route using this neighbor, remove the
          neibhor from the table */
       PRINTF("uip_ds6_route_rm: removing neighbor too\n");
-      nbr_table_unlock(nbr_routes, route->neighbor_routes->route_list); /* unlock is done implicitly by remove as well, but stay on the safe side ... */
+      nbr_table_unlock(nbr_routes, route->neighbor_routes->route_list); /* locking and unlocking is the responsability of the caller; remove unlocks anyway */
       nbr_table_remove(nbr_routes, route->neighbor_routes->route_list);
     }
     memb_free(&routememb, route);
