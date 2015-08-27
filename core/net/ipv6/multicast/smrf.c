@@ -94,7 +94,7 @@ in()
 #if SMRF_CACHE_AND_COMPARE
   if (mcast_len == uip_len
      && memcmp(mcast_buf.u8 + UIP_LLH_LEN, uip_buf + UIP_LLH_LEN, offsetof(struct uip_ip_hdr,ttl)) == 0
-     && memcmp(mcast_buf.u8 + UIP_LLH_LEN + offsetof(struct uip_ip_hdr,ttl) + 1, uip_buf + UIP_LLH_LEN + offsetof(struct uip_ip_hdr,ttl) + 1, uip_len - UIP_LLH_LEN - offsetof(struct uip_ip_hdr,ttl) - 1 - 10) == 0)
+     && memcmp(mcast_buf.u8 + UIP_LLH_LEN + offsetof(struct uip_ip_hdr,ttl) + 1, uip_buf + UIP_LLH_LEN + offsetof(struct uip_ip_hdr,ttl) + 1, uip_len - UIP_LLH_LEN - offsetof(struct uip_ip_hdr,ttl) - 1 - 2) == 0) //- 2 to exclude FCS
   {
     PRINTF("SMRF: Duplicate\n");
 
