@@ -189,7 +189,7 @@ in()
 
       PRINTF("SMRF: Routable in but not from parent; delaying\n");
       if(fwd_spread) {
-        fwd_delay *= fwd_spread;
+        fwd_delay *= (fwd_spread + 1);
       }
     } else {
       // if it has already been sent, drop; otherwise, delay can be reduced
