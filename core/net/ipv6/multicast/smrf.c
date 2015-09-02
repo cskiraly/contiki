@@ -192,6 +192,10 @@ in()
         fwd_delay *= fwd_spread;
       }
     } else {
+      // if it has already been sent, drop; otherwise, delay can be reduced
+      if (duplicate && ctimer_expired(&mcast_periodic)) {
+        return UIP_MCAST6_DROP;
+      }
       /* Randomise final delay in [D , D*Spread], step D */
       if(fwd_spread) {
         fwd_delay = fwd_delay * (1 + ((random_rand() >> 11) % fwd_spread));
