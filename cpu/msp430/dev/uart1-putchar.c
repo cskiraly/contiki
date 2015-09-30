@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "dev/uart1.h"
 
-#ifdef WITH_TINYOS_FRAMES
+#ifdef TINYOS_SERIAL_FRAMES
 
 /* TODO handle multiple message types */
 
