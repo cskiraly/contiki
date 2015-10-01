@@ -90,6 +90,7 @@ typedef struct rpl_route_entry {
   void *dag;
   uint8_t learned_from;
   uint8_t nopath_received;
+  uint8_t dao_sequence;
 } rpl_route_entry_t;
 #endif /* UIP_DS6_ROUTE_STATE_TYPE */
 
